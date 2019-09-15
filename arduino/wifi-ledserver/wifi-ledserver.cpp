@@ -20,7 +20,6 @@
 const char* ssid = "Cityscape";
 const char* pwd = "applejuice500";
 
-
 //ArtnetWifi gArtnet;
 OpcServer gOpc;
 
@@ -34,6 +33,7 @@ namespace {
 ////////////////////////////////////////////////////////////////////////////////
 // Main
 
+char instance_name[255];
 void setup() {
   Serial.begin(115200);
 //  delay(100);
@@ -43,35 +43,43 @@ void setup() {
   gDisplay.begin();
 
   // WiFi stuff
+
+  uint64_t chipid = ESP.getEfuseMac();
+  snprintf(instance_name, sizeof(instance_name), "wifi-led-%04X%08X", (uint16_t)(chipid>>32), (uint32_t)chipid);
+  Serial << "Hostname: " << instance_name << endl;
+
+  WiFi.setHostname(instance_name);
   WiFi.begin(ssid, pwd);
   WiFi.setSleep(false);  // lower latency
+
 //  gArtnet.begin();
   gOpc.begin();
 
-  char instance_name[255];
-  uint64_t chipid = ESP.getEfuseMac();
-  snprintf(instance_name, sizeof(instance_name), "wifi-led-%04X%08X\n", (uint16_t)(chipid>>32), (uint32_t)chipid);
-  Serial << "Hostname: " << instance_name << endl;
-
   MDNS.begin(instance_name);
-  MDNS.setInstanceName(instance_name);
+//  MDNS.setInstanceName(instance_name);
   MDNS.addService("_openpixelcontrol", "_udp", OPC_PORT);
+  MDNS.enableWorkstation();
 
   gFpsGovernor.setShowFps(true);
 }
 
 void loop() {
-  gFpsGovernor.startFrame();
+//  gFpsGovernor.startFrame();
   {
     handleSerial();
 
-    gOpc.loop();
-
+    int received = gOpc.loop();
     if (WiFi.status() != WL_CONNECTED || gOpc.lastPacketMillis() - millis() > 1000) {
       static uint8_t hue = 0;
       gDisplay.raw().fill_rainbow(hue++, 5);
+//      gFpsGovernor.endFrame(false);
+//      gFpsGovernor.startFrame();
+
     } else {
-      gOpc.loop();
+      if (received) {
+        gFpsGovernor.endFrame(false);
+        gFpsGovernor.startFrame();
+      }
     }
     gDisplay.show();
 
@@ -81,7 +89,7 @@ void loop() {
       Serial << "wifi: " << WiFi.status() << " - " << WiFi.localIP() << endl;
     }
   }
-  gFpsGovernor.endFrame(false);
+//  gFpsGovernor.endFrame(false);
 }
 
 namespace {

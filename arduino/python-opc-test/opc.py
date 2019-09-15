@@ -72,6 +72,8 @@ class Client(object):
 
         self._socket = None  # will be None when we're not connected
 
+        self._sequence = 0
+
     def _debug(self, m):
         if self.verbose:
             print('    %s' % str(m))
@@ -88,9 +90,9 @@ class Client(object):
 
         try:
             self._debug('_ensure_connected: trying to connect...')
-            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self._socket.settimeout(1)
-            self._socket.connect((self._ip, self._port))
+            # self._socket.connect((self._ip, self._port))
             self._debug('_ensure_connected:    ...success')
             return True
         except socket.error:
@@ -149,8 +151,9 @@ class Client(object):
             return False
 
         # build OPC message
-        command = SET_PIXEL_COLOURS
-        header = struct.pack('>BBH', channel, SET_PIXEL_COLOURS, len(pixels)*3)
+        self._sequence += 1
+        header = struct.pack('>BBHH', channel, SET_PIXEL_COLOURS, len(pixels)*3,
+                             self._sequence)
         pieces = [struct.pack(
                       'BBB',
                       min(255, max(0, int(r))),
@@ -164,7 +167,10 @@ class Client(object):
 
         self._debug('put_pixels: sending pixels to server')
         try:
-            self._socket.send(message)
+            # self._socket.send(message)
+
+            print("GO", len(message), self._ip, self._port, self._sequence)
+            self._socket.sendto(message, (self._ip, self._port))
         except socket.error:
             self._debug('put_pixels: connection lost.  could not send pixels.')
             self._socket = None

@@ -17,6 +17,7 @@ typedef struct {
   uint8_t channel;
   uint8_t command;
   uint16_t lengthNs;  // network byte order
+  uint16_t sequenceNs;  // network byte order
 } OpcHeader;
 
 constexpr int OPC_PORT = 7890;
@@ -26,6 +27,10 @@ class OpcServer {
   WiFiUDP udp_;
 
   long lastPacketTimestamp_;
+  long lastSequence_;
+
+  long slowPackets_ = 0;
+  long droppedPackets_ = 0;
 
   void discard_() {
     Serial << "Error; Discarding packet rx buffer" << endl;
@@ -45,7 +50,8 @@ class OpcServer {
     udp_.begin(OPC_PORT);
   }
 
-  void loop() {
+  int loop() {
+    int received = 0;
     while (true) {
       long packetSize = udp_.parsePacket();
       if (!packetSize) {
@@ -59,7 +65,21 @@ class OpcServer {
       }
 
       uint16_t len = ntohs(h.lengthNs);
-      Serial << " Ch: " << h.channel << " ; Cmd: "  << h.command << " ; " << len << endl;
+      uint16_t seq = ntohs(h.sequenceNs);
+
+      if (seq > lastSequence_ + 1) {
+        droppedPackets_++;
+        Serial << "-";
+        lastSequence_ = seq;
+      } else if (seq < lastSequence_) {
+        slowPackets_++;
+        Serial << "+";
+        lastSequence_ = seq;
+        discard_();
+        continue;
+      }
+
+//      Serial << " Ch: " << h.channel << " ; Cmd: "  << h.command << " ; " << len << endl;
 
       if (h.command == 0) {  // Show RGB pixel string
         uint16_t maxLen = gDisplay.raw().size() * 3;
@@ -70,6 +90,7 @@ class OpcServer {
         }
 
         lastPacketTimestamp_ = millis();
+        received++;
 
         if (len > maxLen) {
           Serial << "Invalid length " << len << " exceeds " << maxLen << endl;
@@ -87,6 +108,8 @@ class OpcServer {
         discard_();
       }
     }
+
+    return received;
   }
 
   long lastPacketMillis() {

@@ -4,3 +4,12 @@
 [submodule "BiblioPixel.wiki"]
 	path = BiblioPixel.wiki
 	url = https://github.com/ManiacalLabs/BiblioPixel.wiki.git
+[submodule "arduino/libraries/ArtnetWifi"]
+	path = arduino/libraries/ArtnetWifi
+	url = https://github.com/rstephan/ArtnetWifi
+[submodule "arduino/libraries/FastLED"]
+	path = arduino/libraries/FastLED
+	url = https://github.com/FastLED/FastLED.git
+[submodule "arduino/openpixelcontrol"]
+	path = arduino/openpixelcontrol
+	url = git@github.com:zestyping/openpixelcontrol.git

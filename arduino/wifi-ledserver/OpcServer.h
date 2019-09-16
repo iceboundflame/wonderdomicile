@@ -27,17 +27,14 @@ class OpcServer {
   WiFiUDP udp_;
 
   long lastPacketTimestamp_;
-  long lastSequence_;
+  uint16_t lastSequence_;
 
   long slowPackets_ = 0;
   long droppedPackets_ = 0;
 
   void discard_() {
-    Serial << "Error; Discarding packet rx buffer" << endl;
-    char buf[512];
-    while (udp_.available()) {
-      udp_.read(buf, sizeof(buf));
-    }
+//    Serial << "Error; Discarding packet rx buffer" << endl;
+    udp_.flush();
   }
 
   bool checkedReadBytes_(char *buf, int size) {
@@ -53,7 +50,11 @@ class OpcServer {
   int loop() {
     int received = 0;
     while (true) {
+//      long a = micros();
       long packetSize = udp_.parsePacket();
+//      Serial << " parsePacket " << micros()-a << endl;
+//      a = micros();
+
       if (!packetSize) {
         break;
       }
@@ -65,19 +66,19 @@ class OpcServer {
       }
 
       uint16_t len = ntohs(h.lengthNs);
-      uint16_t seq = ntohs(h.sequenceNs);
-
-      if (seq > lastSequence_ + 1) {
+      uint16_t oldSeq = lastSequence_;
+      lastSequence_ = ntohs(h.sequenceNs);
+//      Serial << seq << endl;
+      if (lastSequence_ > oldSeq + 1) {
         droppedPackets_++;
         Serial << "-";
-        lastSequence_ = seq;
-      } else if (seq < lastSequence_) {
+      } else if (lastSequence_ < oldSeq) {
         slowPackets_++;
         Serial << "+";
-        lastSequence_ = seq;
         discard_();
         continue;
       }
+//      received++;discard_();continue;
 
 //      Serial << " Ch: " << h.channel << " ; Cmd: "  << h.command << " ; " << len << endl;
 
@@ -97,6 +98,8 @@ class OpcServer {
           discard_();
           continue;
         }
+
+//        Serial << " finish parse " << micros()-a << endl;
       } else if (h.command == 0xff) {  // device command
         // TODO
 

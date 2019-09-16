@@ -66,26 +66,27 @@ void setup() {
 void loop() {
 //  gFpsGovernor.startFrame();
   {
-    handleSerial();
+//    handleSerial();
 
     int received = gOpc.loop();
+    if (received) {
+      if (received > 1)
+        Serial << received << " ";
+      gFpsGovernor.endFrame(false);
+      gFpsGovernor.startFrame();
+    }
     if (WiFi.status() != WL_CONNECTED || gOpc.lastPacketMillis() - millis() > 1000) {
       static uint8_t hue = 0;
       gDisplay.raw().fill_rainbow(hue++, 5);
-//      gFpsGovernor.endFrame(false);
-//      gFpsGovernor.startFrame();
-
     } else {
-      if (received) {
-        gFpsGovernor.endFrame(false);
-        gFpsGovernor.startFrame();
-      }
     }
     gDisplay.show();
 
     EVERY_N_MILLISECONDS(500) {
       gStatusLed.blink();
+    }
 
+    EVERY_N_SECONDS(5) {
       Serial << "wifi: " << WiFi.status() << " - " << WiFi.localIP() << endl;
     }
   }

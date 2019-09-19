@@ -25,8 +25,8 @@ parser.add_option('-f', '--fps', dest='fps', default=10,
                     help='frames per second')
 options, args = parser.parse_args()
 
-X_DIM = 25
-Y_DIM = 25
+X_DIM = 12
+Y_DIM = 24
 
 def print_board(board):
     for x in range(X_DIM):

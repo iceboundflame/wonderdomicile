@@ -75,12 +75,14 @@ void loop() {
       gFpsGovernor.endFrame(false);
       gFpsGovernor.startFrame();
     }
-    if (WiFi.status() != WL_CONNECTED || gOpc.lastPacketMillis() - millis() > 1000) {
+    if (WiFi.status() != WL_CONNECTED || millis() - gOpc.lastPacketMillis() > 1000) {
       static uint8_t hue = 0;
       gDisplay.raw().fill_rainbow(hue++, 5);
+      gDisplay.show();
     } else {
+      if (received)
+        gDisplay.show();
     }
-    gDisplay.show();
 
     EVERY_N_MILLISECONDS(500) {
       gStatusLed.blink();

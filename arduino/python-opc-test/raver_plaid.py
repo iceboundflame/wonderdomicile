@@ -61,7 +61,7 @@ print('')
 print('    sending pixels forever (control-c to exit)...')
 print('')
 
-n_pixels = 1250  # number of pixels in the included "wall" layout
+n_pixels = 286  # number of pixels in the included "wall" layout
 fps = 60         # frames per second
 
 # how many sine wave cycles are squeezed into our n_pixels

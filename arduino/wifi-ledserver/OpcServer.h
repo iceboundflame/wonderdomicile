@@ -1,6 +1,8 @@
 #include "Display.h"
 
 #include <WiFi.h>
+#include <WiFiServer.h>
+#include <WiFiClient.h>
 
 #include "Streaming.h"
 
@@ -20,9 +22,9 @@ typedef struct {
   uint16_t sequenceNs;  // network byte order
 } OpcHeader;
 
-constexpr int OPC_PORT = 7890;
+constexpr uint16_t OPC_PORT = 7890;
 
-class OpcServer {
+class UdpOpcServer {
  private:
   WiFiUDP udp_;
 
@@ -110,6 +112,122 @@ class OpcServer {
       if (udp_.available()) {
         discard_();
       }
+    }
+
+    return received;
+  }
+
+  long lastPacketMillis() {
+    return lastPacketTimestamp_;
+  }
+};
+
+class TcpOpcServer {
+ private:
+  WiFiServer server_;
+  WiFiClient client_;
+
+  OpcHeader currentHeader_;
+  bool headerReceived_ = false;
+
+  long lastPacketTimestamp_;
+  uint16_t lastSequence_;
+
+  long slowPackets_ = 0;
+  long droppedPackets_ = 0;
+
+  void close_() {
+    Serial << "Error; Closing connection" << endl;
+    client_.stop();
+
+    headerReceived_ = false;
+  }
+
+  bool checkedReadBytes_(char *buf, int size) {
+    int read = client_.read((uint8_t*) buf, size);
+    if (read != size) {
+      Serial << " req " << size << " got " << read << endl;
+    }
+    return read == size;
+  }
+
+ public:
+  TcpOpcServer(): server_(OPC_PORT) {
+  }
+
+  void begin() {
+    server_.begin();
+  }
+
+  int loop() {
+    WiFiClient newClient = server_.available();
+    if (newClient) {
+      if (client_) {
+        close_();
+      }
+      Serial << "New client" << endl;
+      client_ = newClient;
+    }
+
+    int received = 0;
+    if (client_) {
+      do {
+        if (!headerReceived_) {
+          if (client_.available() < sizeof(currentHeader_)) {
+            // wait for more data to be received
+            break;
+          }
+
+          if (!checkedReadBytes_((char *) &currentHeader_, sizeof(currentHeader_))) {
+            Serial << "Failed to read header" << endl;
+            close_();
+            break;
+          }
+          headerReceived_ = true;
+
+//          Serial << " Ch: " << currentHeader_.channel
+//                 << " ; Cmd: "  << currentHeader_.command
+//                 << " ; " << ntohs(currentHeader_.lengthNs) << endl;
+        }
+        if (headerReceived_) {
+          uint16_t len = ntohs(currentHeader_.lengthNs);
+
+          // XXX: Only works when full message fits in rx buffer
+          if (client_.available() < len) {
+            // wait for more data to be received
+            break;
+          }
+
+          if (currentHeader_.command == 0) {  // Show RGB pixel string
+            uint16_t maxLen = gDisplay.raw().size() * 3;
+
+            if (!checkedReadBytes_((char *) gDisplay.raw().leds, min(len, maxLen))) {
+              Serial << "Failed to read content" << endl;
+              close_();
+              break;
+            }
+
+            lastPacketTimestamp_ = millis();
+            received++;
+
+            if (len > maxLen) {
+              Serial << "Ignore extra data: length " << len << " exceeds " << maxLen << endl;
+              for (int i = 0; i < len - maxLen; ++i) {
+                client_.read();
+              }
+            }
+          } else {
+            Serial << "Ignoring invalid command " << _HEX(currentHeader_.command) << endl;
+
+//              for (int i = 0; i < len; ++i) {
+//                client_.read();
+//              }
+            close_();
+          }
+
+          headerReceived_ = false;
+        }
+      } while (client_.available());
     }
 
     return received;

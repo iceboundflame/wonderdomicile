@@ -90,9 +90,13 @@ class Client(object):
 
         try:
             self._debug('_ensure_connected: trying to connect...')
-            self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            print("Reconnect")
+            # self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 864*8)
+            self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             self._socket.settimeout(1)
-            # self._socket.connect((self._ip, self._port))
+            self._socket.connect((self._ip, self._port))
             self._debug('_ensure_connected:    ...success')
             return True
         except socket.error:
@@ -152,6 +156,9 @@ class Client(object):
 
         # build OPC message
         self._sequence += 1
+        if self._sequence > 65535:
+            self._sequence = 0
+
         header = struct.pack('>BBHH', channel, SET_PIXEL_COLOURS, len(pixels)*3,
                              self._sequence)
         pieces = [struct.pack(
@@ -167,10 +174,9 @@ class Client(object):
 
         self._debug('put_pixels: sending pixels to server')
         try:
-            # self._socket.send(message)
-
             print("GO", len(message), self._ip, self._port, self._sequence)
-            self._socket.sendto(message, (self._ip, self._port))
+            self._socket.send(message)
+            # self._socket.sendto(message, (self._ip, self._port))
         except socket.error:
             self._debug('put_pixels: connection lost.  could not send pixels.')
             self._socket = None

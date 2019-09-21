@@ -21,7 +21,7 @@ const char* ssid = "Cityscape";
 const char* pwd = "applejuice500";
 
 //ArtnetWifi gArtnet;
-OpcServer gOpc;
+TcpOpcServer gOpc;
 
 namespace {
   void handleSerial();
@@ -75,7 +75,7 @@ void loop() {
       gFpsGovernor.endFrame(false);
       gFpsGovernor.startFrame();
     }
-    if (WiFi.status() != WL_CONNECTED || millis() - gOpc.lastPacketMillis() > 1000) {
+    if (WiFi.status() != WL_CONNECTED || millis() - gOpc.lastPacketMillis() > 100) {
       static uint8_t hue = 0;
       gDisplay.raw().fill_rainbow(hue++, 5);
       gDisplay.show();

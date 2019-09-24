@@ -16,12 +16,14 @@
 #include "OpcServer.h"
 #include "Streaming.h"
 
+#include "esp_wifi.h"
+
 // WiFi stuff
 const char* ssid = "Cityscape";
 const char* pwd = "applejuice500";
 
 //ArtnetWifi gArtnet;
-TcpOpcServer gOpc;
+UdpOpcServer gOpc;
 
 namespace {
   void handleSerial();
@@ -36,6 +38,7 @@ namespace {
 char instance_name[255];
 void setup() {
   Serial.begin(115200);
+  Serial.setDebugOutput(true);
 //  delay(100);
   Serial << "wifi-ledserver starting; Compiled " __DATE__ "  " __TIME__ << endl;
 
@@ -89,7 +92,7 @@ void loop() {
     }
 
     EVERY_N_SECONDS(5) {
-      Serial << "wifi: " << WiFi.status() << " - " << WiFi.localIP() << endl;
+      Serial << "wifi: " << WiFi.status() << " - " << WiFi.localIP() << " - " << WiFi.RSSI() << endl;
     }
   }
 //  gFpsGovernor.endFrame(false);

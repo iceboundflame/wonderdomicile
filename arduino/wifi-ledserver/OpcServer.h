@@ -20,6 +20,7 @@ typedef struct {
   uint8_t command;
   uint16_t lengthNs;  // network byte order
   uint16_t sequenceNs;  // network byte order
+//  uint32_t timestampNs;  // network byte order
 } OpcHeader;
 
 constexpr uint16_t OPC_PORT = 7890;
@@ -144,9 +145,14 @@ class TcpOpcServer {
   }
 
   bool checkedReadBytes_(char *buf, int size) {
-    int read = client_.read((uint8_t*) buf, size);
+//    int read = -1;
+    int read = client_.read((uint8_t *) buf, size);
+    while (read < 0) {
+      Serial << "!";
+      read = client_.read((uint8_t *) buf, size);
+    }
     if (read != size) {
-      Serial << " req " << size << " got " << read << endl;
+      Serial << "checkedReadBytes: req " << size << " got " << read << endl;
     }
     return read == size;
   }
@@ -162,10 +168,10 @@ class TcpOpcServer {
   int loop() {
     WiFiClient newClient = server_.available();
     if (newClient) {
+      Serial << "New client" << endl;
       if (client_) {
         close_();
       }
-      Serial << "New client" << endl;
       client_ = newClient;
     }
 
@@ -191,6 +197,11 @@ class TcpOpcServer {
         }
         if (headerReceived_) {
           uint16_t len = ntohs(currentHeader_.lengthNs);
+          uint16_t maxLen = gDisplay.raw().size() * 3;
+          if (len > maxLen) {
+            Serial << "Length " << len << " exceeds " << maxLen << endl;
+            close_();
+          }
 
           // XXX: Only works when full message fits in rx buffer
           if (client_.available() < len) {
@@ -199,9 +210,7 @@ class TcpOpcServer {
           }
 
           if (currentHeader_.command == 0) {  // Show RGB pixel string
-            uint16_t maxLen = gDisplay.raw().size() * 3;
-
-            if (!checkedReadBytes_((char *) gDisplay.raw().leds, min(len, maxLen))) {
+            if (!checkedReadBytes_((char *) gDisplay.raw().leds, len)) {
               Serial << "Failed to read content" << endl;
               close_();
               break;
@@ -209,13 +218,6 @@ class TcpOpcServer {
 
             lastPacketTimestamp_ = millis();
             received++;
-
-            if (len > maxLen) {
-              Serial << "Ignore extra data: length " << len << " exceeds " << maxLen << endl;
-              for (int i = 0; i < len - maxLen; ++i) {
-                client_.read();
-              }
-            }
           } else {
             Serial << "Ignoring invalid command " << _HEX(currentHeader_.command) << endl;
 

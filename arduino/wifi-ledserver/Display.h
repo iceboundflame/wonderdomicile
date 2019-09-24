@@ -102,6 +102,7 @@ class FpsGovernor {
 
   int loopN_ = 0;
   long lastPrint_ = 0;
+  long maxElapsed_ = 0;
 
  public:
   void startFrame() {
@@ -111,6 +112,7 @@ class FpsGovernor {
     constexpr long kDesiredLoopMicros = 1000000 / FRAME_RATE;
 
     long elapsed = micros() - start_;
+    maxElapsed_ = max(elapsed, maxElapsed_);
     long delay = kDesiredLoopMicros - elapsed;
     if (enableDelay && delay > 0) {
       delayMicroseconds(delay);
@@ -124,8 +126,10 @@ class FpsGovernor {
                << (1000000 * loopN_ / (float) elapsedSinceLastPrint)
                << " avg / last = "
                << (1000000 / (float) elapsed)
+               << " / maxElapsed = " << maxElapsed_/1000 << "ms"
                << endl;
         loopN_ = 0;
+        maxElapsed_ = 0;
         lastPrint_ = micros();
       }
     }

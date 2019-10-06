@@ -13,3 +13,6 @@
 [submodule "arduino/openpixelcontrol"]
 	path = arduino/openpixelcontrol
 	url = git@github.com:zestyping/openpixelcontrol.git
+[submodule "wifi-leds/components/arduino"]
+	path = wifi-leds/components/arduino
+	url = https://github.com/espressif/arduino-esp32.git

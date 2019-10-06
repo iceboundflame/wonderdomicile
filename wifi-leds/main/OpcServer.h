@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <WiFiServer.h>
 #include <WiFiClient.h>
+#include <AsyncUDP.h>
 
 #include "Streaming.h"
 
@@ -235,6 +236,112 @@ class TcpOpcServer {
     }
 
     return received;
+  }
+
+  long lastPacketMillis() {
+    return lastPacketTimestamp_;
+  }
+};
+
+class AsyncUdpOpcServer {
+ private:
+  AsyncUDP udp_;
+
+  long lastPacketTimestamp_;
+  uint16_t lastSequence_;
+
+  long slowPackets_ = 0;
+  long droppedPackets_ = 0;
+  int got_ = 0;
+
+ public:
+  void begin() {
+    udp_.listen(OPC_PORT);
+    udp_.onPacket([this](AsyncUDPPacket packet) {
+      got_++;
+
+      long nowTS = millis();
+      long elapsedMs = nowTS - lastPacketTimestamp_;
+      lastPacketTimestamp_ = nowTS;
+
+      gFpsGovernor.endFrame(false);
+      gFpsGovernor.startFrame();
+      Serial << elapsedMs << " ";
+    });
+  }
+
+  int loop() {
+    int received = got_;
+    got_ = 0;
+    return received;
+
+//    int received = 0;
+//    while (true) {
+////      long a = micros();
+//      long packetSize = udp_.parsePacket();
+////      Serial << " parsePacket " << micros()-a << endl;
+////      a = micros();
+//
+//      if (!packetSize) {
+//        break;
+//      }
+//
+//      OpcHeader h;
+//      if (!checkedReadBytes_((char*) &h, sizeof(h))) {
+//        discard_();
+//        continue;
+//      }
+//
+//      uint16_t len = ntohs(h.lengthNs);
+//      uint16_t oldSeq = lastSequence_;
+//      lastSequence_ = ntohs(h.sequenceNs);
+////      Serial << seq << endl;
+//      if (lastSequence_ > oldSeq + 1) {
+//        droppedPackets_++;
+//        Serial << "-";
+//      } else if (lastSequence_ == oldSeq) {
+//        Serial << "=";
+//      } else if (lastSequence_ < oldSeq) {
+//        slowPackets_++;
+//        Serial << "+";
+//        discard_();
+//        continue;
+//      }
+////      received++;discard_();continue;
+//
+////      Serial << " Ch: " << h.channel << " ; Cmd: "  << h.command << " ; " << len << endl;
+//
+//      if (h.command == 0) {  // Show RGB pixel string
+//        uint16_t maxLen = gDisplay.raw().size() * 3;
+//
+//        if (!checkedReadBytes_((char*) gDisplay.raw().leds, min(len, maxLen))) {
+//          discard_();
+//          continue;
+//        }
+//
+//        lastPacketTimestamp_ = millis();
+//        received++;
+//
+//        if (len > maxLen) {
+//          Serial << "Invalid length " << len << " exceeds " << maxLen << endl;
+//          discard_();
+//          continue;
+//        }
+//
+////        Serial << " finish parse " << micros()-a << endl;
+//      } else if (h.command == 0xff) {  // device command
+//        // TODO
+//
+//      } else {
+//        Serial << "Invalid command " << _HEX(h.command) << endl;
+//      }
+//
+//      if (udp_.available()) {
+//        discard_();
+//      }
+//    }
+//
+//    return received;
   }
 
   long lastPacketMillis() {

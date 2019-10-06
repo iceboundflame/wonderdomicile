@@ -18,7 +18,8 @@ const char* ssid = "Cityscape";
 const char* pwd = "applejuice500";
 
 //ArtnetWifi gArtnet;
-UdpOpcServer gOpc;
+//UdpOpcServer gOpc;
+AsyncUdpOpcServer gOpc;
 
 namespace {
   void handleSerial();
@@ -30,11 +31,9 @@ namespace {
 ////////////////////////////////////////////////////////////////////////////////
 // Main
 
-void loop();
-
 char instance_name[255];
 
-extern "C" void app_main() {
+void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(true);
 //  delay(100);
@@ -63,9 +62,9 @@ extern "C" void app_main() {
 
   gFpsGovernor.setShowFps(true);
 
-  while(1) {
-    loop();
-  }
+//  while(1) {
+//    loop();
+//  }
 }
 
 void loop() {
@@ -75,19 +74,20 @@ void loop() {
 
     int received = gOpc.loop();
     if (received) {
-      if (received > 1)
-        Serial << received << " ";
-      gFpsGovernor.endFrame(false);
-      gFpsGovernor.startFrame();
+//      if (received > 1)
+//        Serial << received << " ";
+
+//      gFpsGovernor.endFrame(false);
+//      gFpsGovernor.startFrame();
     }
-    if (WiFi.status() != WL_CONNECTED || millis() - gOpc.lastPacketMillis() > 100) {
-      static uint8_t hue = 0;
-      gDisplay.raw().fill_rainbow(hue++, 5);
-      gDisplay.show();
-    } else {
-      if (received)
-        gDisplay.show();
-    }
+//    if (WiFi.status() != WL_CONNECTED || millis() - gOpc.lastPacketMillis() > 100) {
+//      static uint8_t hue = 0;
+//      gDisplay.raw().fill_rainbow(hue++, 5);
+//      gDisplay.show();
+//    } else {
+//      if (received)
+//        gDisplay.show();
+//    }
 
     EVERY_N_MILLISECONDS(500) {
       gStatusLed.blink();
@@ -98,6 +98,8 @@ void loop() {
 //    }
   }
 //  gFpsGovernor.endFrame(false);
+
+  vTaskDelay(1);
 }
 
 namespace {

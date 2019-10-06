@@ -16,3 +16,6 @@
 [submodule "wifi-leds/components/arduino"]
 	path = wifi-leds/components/arduino
 	url = https://github.com/espressif/arduino-esp32.git
+[submodule "wifi-leds/main/libraries/FastLED"]
+	path = wifi-leds/main/libraries/FastLED
+	url = https://github.com/FastLED/FastLED.git

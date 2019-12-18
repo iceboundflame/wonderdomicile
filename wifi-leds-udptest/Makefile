@@ -3,9 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := hello-world
-
-EXTRA_COMPONENT_DIRS = $(IDF_PATH)/examples/common_components/protocol_examples_common
+PROJECT_NAME := wifi-leds-udptest
 
 include $(IDF_PATH)/make/project.mk
 

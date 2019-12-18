@@ -26,6 +26,65 @@ namespace {
   bool handleSerialLine(const char *line);
 }
 
+
+static esp_err_t IRAM_ATTR iperf_run_udp_server(void)
+{
+  socklen_t addr_len = sizeof(struct sockaddr_in);
+  struct sockaddr_in addr;
+  int actual_recv = 0;
+  struct timeval t;
+  int want_recv = 0;
+  uint8_t *buffer;
+  int sockfd;
+  int opt;
+  bool udp_recv_start = true ;
+
+  sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  if (sockfd < 0) {
+    iperf_show_socket_error_reason("udp server create", sockfd);
+    return ESP_FAIL;
+  }
+
+  setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(s_iperf_ctrl.cfg.sport);
+  addr.sin_addr.s_addr = s_iperf_ctrl.cfg.sip;
+  if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+    iperf_show_socket_error_reason("udp server bind", sockfd);
+    return ESP_FAIL;
+  }
+
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(s_iperf_ctrl.cfg.sport);
+  addr.sin_addr.s_addr = s_iperf_ctrl.cfg.sip;
+
+  buffer = s_iperf_ctrl.buffer;
+  want_recv = s_iperf_ctrl.buffer_len;
+  ESP_LOGI(TAG, "want recv=%d", want_recv);
+
+  t.tv_sec = IPERF_SOCKET_RX_TIMEOUT;
+  setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &t, sizeof(t));
+
+  while (!s_iperf_ctrl.finish) {
+    actual_recv = recvfrom(sockfd, buffer, want_recv, 0, (struct sockaddr *)&addr, &addr_len);
+    if (actual_recv < 0) {
+      iperf_show_socket_error_reason("udp server recv", sockfd);
+    } else {
+      if(udp_recv_start){
+        iperf_start_report();
+        udp_recv_start = false;
+      }
+      s_iperf_ctrl.total_len += actual_recv;
+    }
+  }
+
+  s_iperf_ctrl.finish = true;
+  close(sockfd);
+  return ESP_OK;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

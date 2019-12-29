@@ -7,7 +7,7 @@
 User defines
 ***************************/
 #define NUM_LEDS_PER_STRIP 143
-#define NUM_STRIPS 8
+#define NUM_STRIPS 6
 
 #define MAX_BRIGHTNESS 255
 #define GLOBAL_BRIGHTNESS 255
@@ -18,7 +18,8 @@ User defines
 /***************************
 LEDs Setup
 ***************************/
-CRGB leds[NUM_STRIPS * NUM_LEDS_PER_STRIP];
+// OctoWS requires buffer space for 8 strips even if fewer are used
+CRGB leds[8 * NUM_LEDS_PER_STRIP];
 
 /***************************
 BiblioPixel Setup

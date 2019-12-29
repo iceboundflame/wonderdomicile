@@ -1,0 +1,29 @@
+#!/bin/bash -ex
+cd "$(dirname "$0")"/..
+
+PORT=/dev/ttyACM0
+
+# grab old inode of port so we can tell once it's disconnected/reconnected
+OLD_INODE=$(ssh pi@columns.local "stat -c '%i' $PORT 2>/dev/null")
+
+# reboot teensy, can happen in bg while we're copying files
+../teensy/8_reboot_teensy_remotely.sh &
+
+ssh pi@columns.local "
+    sudo systemctl mask wonderdomicile --runtime --now
+    sudo killall -9 python3
+"
+
+rsync -avz --delete --exclude='.git/' . pi@columns.local:~/workspace/wonderdomicile
+ssh pi@columns.local "
+    while
+        INODE=\$(stat -c '%i' $PORT 2>/dev/null)
+        [ \"\$INODE\" = '$OLD_INODE' ]
+    do
+        sleep 0.1
+    done
+    while [ ! -e $PORT ]; do sleep 0.1; done
+
+    set -x
+    ~/workspace/wonderdomicile/rpi/start
+"

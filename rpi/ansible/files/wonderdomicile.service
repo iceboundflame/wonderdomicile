@@ -1,0 +1,31 @@
+[Unit]
+Description=Wonderdomicile
+
+OnFailure=restart-teensy.service
+# Note: OnFailure does not trigger for "clean" exit codes including SIGTERM.
+# If program terminates, we could get stuck in a state on subsequent restarts
+# where Teensy is not ready to receive data.
+# TODO: Add a handshake with Teensy, so that on failure to start streaming, it will restart-teensy
+
+# depend on serial port and quit when it disappears
+BindsTo=dev-ttyACM0.device
+After=dev-ttyACM0.device sound.target
+
+# for two-teensy operation try this:
+#After=dev-ttyACM0.device de-ttyACM1.device sound.target
+
+# faster startup
+DefaultDependencies=no
+
+[Service]
+User=pi
+ExecStart=/home/pi/workspace/wonderdomicile/rpi/start
+
+# We still need Restart rules to catch the success case.
+# OnFailure will catch the rest and soft-reboot Teensy, which will
+# stop and start this service when ttyACM0 disappears/reappears.
+Restart=on-success
+RestartSec=1
+
+[Install]
+WantedBy=dev-ttyACM0.device

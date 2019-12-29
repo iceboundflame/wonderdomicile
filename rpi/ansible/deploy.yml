@@ -1,0 +1,85 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  vars:
+  tasks:
+    - debug: msg="Ansible running in {{ansible_lsb.id}}!"
+
+    - apt: update_cache=yes
+
+    - name: Basic build tools
+      tags: basic-build
+      apt:
+        name:
+          - build-essential
+          - cmake
+          - git
+          - libusb-dev
+          - libudev-dev
+
+    - name: Install teensy_loader_cli
+      tags: teensy
+      block:
+      - name: Clone teensy_loader_cli
+        git:
+          repo: https://github.com/PaulStoffregen/teensy_loader_cli.git
+          dest: /opt/teensy_loader_cli
+          version: eb61aa1
+      - name: Build and install teensy_loader_cli
+        shell: |
+          cd /opt/teensy_loader_cli
+          make
+          install -m 0755 ./teensy_loader_cli /usr/local/bin/teensy_loader_cli
+      - name: Install udev rule
+        copy: src=files/49-teensy.rules dest=/etc/udev/rules.d/49-teensy.rules
+
+    - name: Install tycmd
+      tags: tycmd
+      block:
+      - name: Clone tycmd
+        git:
+          repo: https://github.com/Koromix/tytools.git
+          dest: /opt/tytools
+          version: d03c1ab4b65e7f4e2ee30cfadc5582eac8840347
+      - name: Build and install tycmd
+        shell: |
+          cd /opt/tytools
+
+          mkdir -p build/linux && cd build/linux
+          cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCONFIG_TYCOMMANDER_BUILD=OFF -DCONFIG_TYUPDATER_BUILD=OFF ../..
+          make
+          make install
+
+    - name: Install merkaba3 dependencies
+      tags: merkaba3-deps
+      apt:
+        name:
+          - python3-venv
+          - python3-dev
+          # for ipython/ipdb
+          - libncurses-dev
+          # for madmom, scipy
+          - gfortran
+          - libblas3
+          - liblapack3
+          - libopenblas-dev
+          - liblapack-dev
+          - libfftw3-dev
+          - portaudio19-dev
+          # for scipy-ndimage, Pillow
+          - libjpeg-dev
+          - zlib1g-dev
+
+          # for wonderdomicile
+          - pipenv
+
+    - name: Setup merkaba3 install location and systemd configs
+      tags: merkaba3
+      block:
+      - file: path=/home/pi/workspace/wonderdomicile state=directory owner=pi group=pi
+      - file: path=/usr/local/lib/systemd/system state=directory
+      #- copy: src=files/merkaba3.service dest=/usr/local/lib/systemd/system/merkaba3.service
+      #- copy: src=files/restart-teensy.service dest=/etc/systemd/system/restart-teensy.service
+      #- copy: src=files/asound.conf dest=/etc/asound.conf
+      #- systemd: name=merkaba3 enabled=yes daemon_reload=yes

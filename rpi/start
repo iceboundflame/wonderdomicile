@@ -1,0 +1,6 @@
+#!/bin/bash -e
+cd "$(dirname "$0")"/..
+
+set -x
+
+pipenv run -- bp wonderdomicile.rpi.yml

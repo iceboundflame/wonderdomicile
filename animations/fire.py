@@ -1,14 +1,11 @@
 import math
-import random
 
-from bibliopixel.animation.matrix import Matrix
 import numpy as np
-
-
-# based on shift5 from https://stackoverflow.com/a/42642326/133518
+from bibliopixel.animation.matrix import Matrix
 from bibliopixel.colors import COLORS, palette
 
 
+# based on shift5 from https://stackoverflow.com/a/42642326/133518
 def shift_and_copy_2d(arr, num):
     result = np.empty_like(arr)
     if num > 0:
@@ -81,6 +78,7 @@ class Fire(Matrix):
         self.flames = FlameSimulator(width, height)
 
         self.palette = self.make_heat_palette(COLORS.red, COLORS.yellow)
+        # self.palette = np_palettes.palettes['bhw1_03']
 
     # Black body radiation colors
     def make_heat_palette(self, cool_color, hot_color):
@@ -99,6 +97,7 @@ class Fire(Matrix):
 
     def step(self, amt=1):
         self.flames.step()
+        # self.color_list[:] = np_palettes.apply_palette_1(self.flames.heat_buf, self.palette).reshape((-1, 3))
 
         for i in range(self.layout.width):
             for j in range(self.layout.height):

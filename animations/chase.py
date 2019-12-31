@@ -38,6 +38,8 @@ class Chase(Matrix):
         colors = [self.palette(self._step), self.palette(self._step * -1)]
         color = colors[0]
 
+        self.layout.color_list[:] = self.layout.color_list * self.fade
+
         for i in range(self.layout.width):
 
             if self.alternating > 0 and (math.floor(i / self.alternating)) % 2 == 0:
@@ -53,22 +55,8 @@ class Chase(Matrix):
 
                 if pos % (self.spacing + self.length) in range(self.length):
                     self.layout.set(i, j, color)
-                else:
-                    if self.fade < 1:
-                        self.fade_pixel(i, j)
-                    else:
-                        self.layout.set(i, j, (0,0,0))
 
         self._step += amt
-
-    # fades pixel at [i,j] by self.fade
-    def fade_pixel(self, i, j):
-        old = self.layout.get(i, j)
-        if old != (0,0,0):
-            self.layout.set(
-                i, j,
-                [math.floor(x * self.fade) for x in old]
-            )
 
 class ChaseUp(Matrix):
     def __init__(self, *args,
@@ -93,6 +81,8 @@ class ChaseUp(Matrix):
         super().__init__(*args, **kwds)
 
     def step(self, amt=1):
+        self.layout.color_list[:] = self.layout.color_list * self.fade
+
         for i in range(self.layout.width):
             color = self.palette(self._step + 50 * math.floor(i/4))
             for j in range(self.layout.height):
@@ -100,19 +90,5 @@ class ChaseUp(Matrix):
 
                 if pos % (self.spacing + self.length) in range(self.length):
                     self.layout.set(i, j, color)
-                else:
-                    if self.fade < 1:
-                        self.fade_pixel(i, j)
-                    else:
-                        self.layout.set(i, j, (0,0,0))
 
         self._step += amt
-
-    # fades pixel at [i,j] by self.fade
-    def fade_pixel(self, i, j):
-        old = self.layout.get(i, j)
-        if old != (0,0,0):
-            self.layout.set(
-                i, j,
-                [math.floor(x * self.fade) for x in old]
-            )

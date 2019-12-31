@@ -35,8 +35,6 @@ Run ansible script.
 
     $ ansible-playbook deploy.yml
 
-
-
 ## Deploy
 
     $ rpi/deploy

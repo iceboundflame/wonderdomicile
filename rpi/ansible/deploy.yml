@@ -51,11 +51,13 @@
           make
           make install
 
-    - name: Install merkaba3 dependencies
-      tags: merkaba3-deps
+    - name: Install wonderdomicile dependencies
+      tags: wonderdomicile-deps
       apt:
         name:
-          - python3-venv
+          - pipenv
+
+          # --- all below requirements not confirmed to be needed ---
           - python3-dev
           # for ipython/ipdb
           - libncurses-dev
@@ -71,15 +73,12 @@
           - libjpeg-dev
           - zlib1g-dev
 
-          # for wonderdomicile
-          - pipenv
-
-    - name: Setup merkaba3 install location and systemd configs
-      tags: merkaba3
+    - name: Setup wonderdomicile install location and systemd configs
+      tags: wonderdomicile
       block:
       - file: path=/home/pi/workspace/wonderdomicile state=directory owner=pi group=pi
       - file: path=/usr/local/lib/systemd/system state=directory
-      #- copy: src=files/merkaba3.service dest=/usr/local/lib/systemd/system/merkaba3.service
-      #- copy: src=files/restart-teensy.service dest=/etc/systemd/system/restart-teensy.service
-      #- copy: src=files/asound.conf dest=/etc/asound.conf
-      #- systemd: name=merkaba3 enabled=yes daemon_reload=yes
+      - copy: src=files/wonderdomicile.service dest=/usr/local/lib/systemd/system/wonderdomicile.service
+      - copy: src=files/restart-teensy.service dest=/etc/systemd/system/restart-teensy.service
+      - copy: src=files/asound.conf dest=/etc/asound.conf
+      - systemd: name=wonderdomicile enabled=yes daemon_reload=yes

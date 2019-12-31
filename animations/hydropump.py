@@ -30,16 +30,6 @@ class HydroPump(Matrix):
             # Tuple of (active, water_level)
             self.active_columns.append([False, 0])
 
-
-    # fades pixel at [i,j] by self.fade
-    def fade_pixel(self, i, j):
-        old = self.layout.get(i, j)
-        if old != (0,0,0):
-            self.layout.set(
-                i, j,
-                [math.floor(x * self.fade) for x in old]
-            )
-
     def update_water_levels(self):
         # how long to stay at peak water level
         modifier = 0
@@ -59,15 +49,13 @@ class HydroPump(Matrix):
         self.active_columns[newly_active + 1][0] = True
 
         self.update_water_levels()
+
+        self.layout.color_list[:] = self.layout.color_list * self.fade
+
         for i in range(self.layout.width):
             color = self.palette(self._step + 50 * math.floor(i/2))
             for j in range(self.layout.height):
                 if j > self.layout.height - self.active_columns[i][1]:
                     self.layout.set(i, j, color)
-                else:
-                    if self.fade < 1:
-                        self.fade_pixel(i, j)
-                    else:
-                        self.layout.set(i, j, (0,0,0))
 
         self._step += amt

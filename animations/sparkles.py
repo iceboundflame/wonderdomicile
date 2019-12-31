@@ -6,8 +6,8 @@ from bibliopixel.animation.matrix import Matrix
 
 class Sparkles(Matrix):
     def __init__(self, *args,
-                 fade=0.8,
-                 sparkle_prob=0.005,
+                 fade=0.98,
+                 sparkle_prob=0.0025,
                  **kwds):
 
         self.fade = fade

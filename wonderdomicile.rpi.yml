@@ -7,7 +7,7 @@ drivers:
     num: 858
     c_order: RGB
     ledtype: WS2812B
-    #gamma: [1.1, 0.5, 0]
+    gamma: WS2812
   - typename: .dummy
     num: 1430
     device_id: 1
@@ -23,20 +23,31 @@ path: ./animations/
 
 animation:
   typename: sequence
-  length: 5 #600
+  length: 120 #600
 #  random: true
   run:
-    fps: 25
+    fps: 60
     threaded: true
   animations:
-    - typename: fire.Fire
-      name: Fire
-      run:
-        fps: 60
+    - typename: colorwave.Vertical
       palette:
         colors: rainbow
+      bloom: true
+      color_speed: 1
+      color_distance: 3
+    - typename: hydropump.HydroPump
+      palette:
+        colors: rainbow
+      fade: 0.5
+      pump_speed: 4
+      pipe_rate: 1
+      gravity: 0.25
     - typename: sparkles.Sparkles
       name: Sparkles
+      palette:
+        colors: rainbow
+    - typename: fire.Fire
+      name: Fire
       palette:
         colors: rainbow
     - typename: chase.ChaseUp
@@ -46,37 +57,20 @@ animation:
       spacing: 30
       palette:
         colors: rainbow
-    - typename: hydropump.HydroPump
-      palette:
-        colors: rainbow
-      fade: 0.5
-      pump_speed: 8
-      pipe_rate: 2
-      gravity: 0.5
-    - typename: chase.Chase
-      name: Chase
-      run:
-        fps: 20
-      spacing: 30
-      alternating: 2
-      palette:
-        colors: rainbow
+#    - typename: chase.Chase
+#      name: Chase
+#      run:
+#        fps: 20
+#      spacing: 30
+#      alternating: 2
+#      palette:
+#        colors: rainbow
     - typename: $bpa.MatrixRain.MatrixRain
-      run:
-        fps: 30
       tail: 1
       growthRate: 1
       palette:
         colors:
           - royal blue 1
-    - typename: colorwave.Vertical
-      palette:
-        colors: rainbow
-      bloom: true
-      color_speed: 4
-      color_distance: 3
-      palette:
-        colors: rainbow
 
 layout:
   typename: matrix

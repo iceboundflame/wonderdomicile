@@ -1,4 +1,6 @@
 import datetime
+
+import numpy as np
 from bibliopixel import animation
 from bibliopixel.colors import COLORS
 from bibliopixel.animation.matrix import Matrix
@@ -35,14 +37,13 @@ class Vertical(Matrix):
         super().__init__(*args, **kwds)
 
     def step(self, amt=1):
-        for j in range(self.layout.height):
-            if self.bloom:
-                distance = abs(self.layout.height / 2 - j)
-                color = self.palette(self._step * self.color_speed - distance * self.color_distance)
-            else:
-                color = self.palette(self.color_speed * j + self._step * self.color_distance)
+        if self.bloom:
+            distance = abs(self.layout.height / 2 - np.arange(self.layout.height))
+            vals = self._step * self.color_speed - distance * self.color_distance
+        else:
+            vals = self.color_speed * np.arange(self.layout.height) + self._step * self.color_distance
 
-            for i in range(self.layout.width):
-                self.layout.set(i,j,color)
+        colors = self.palette.batch_apply_palette(vals)
+        self.layout.color_list[self.layout.coord_map] = colors[:,np.newaxis,:]
 
         self._step += amt

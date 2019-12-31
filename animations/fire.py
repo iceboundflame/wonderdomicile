@@ -6,6 +6,9 @@ from bibliopixel.colors import COLORS, palette
 
 
 # based on shift5 from https://stackoverflow.com/a/42642326/133518
+from animations import np_palettes
+
+
 def shift_and_copy_2d(arr, num):
     result = np.empty_like(arr)
     if num > 0:
@@ -77,33 +80,19 @@ class Fire(Matrix):
         width, height = self.layout.dimensions
         self.flames = FlameSimulator(width, height)
 
-        self.palette = self.make_heat_palette(COLORS.red, COLORS.yellow)
-        # self.palette = np_palettes.palettes['bhw1_03']
-
-    # Black body radiation colors
-    def make_heat_palette(self, cool_color, hot_color):
-        p1 = palette.Palette([COLORS.black, cool_color], continuous=True, length=128, autoscale=True)
-        p2 = palette.Palette([cool_color, hot_color], continuous=True, length=96, autoscale=True)
-        p3 = palette.Palette([hot_color, COLORS.white], continuous=True, length=32, autoscale=True)
-        colors = []
-        for i in range(128):
-            colors.append(tuple([math.floor(x) for x in p1(i)]))
-        for i in range(96):
-            colors.append(tuple([math.floor(x) for x in p2(i)]))
-        for i in range(32):
-            colors.append(tuple([math.floor(x) for x in p3(i)]))
-
-        return palette.Palette(colors)
+        self.palette = np_palettes.palettes['bhw1_03']
 
     def step(self, amt=1):
         self.flames.step()
-        # self.color_list[:] = np_palettes.apply_palette_1(self.flames.heat_buf, self.palette).reshape((-1, 3))
 
-        for i in range(self.layout.width):
-            for j in range(self.layout.height):
-                c = int(self.flames.heat_buf[i,j] * 255)
-                c = self.palette(c)
-                # c = (c,c,c)
-                self.layout.set(i, j, c)
+        self.color_list[self.layout.coord_map] = \
+            np_palettes.apply_palette_1(self.flames.heat_buf, self.palette).transpose((1, 0, 2))
+
+        # for i in range(self.layout.width):
+        #     for j in range(self.layout.height):
+        #         c = int(self.flames.heat_buf[i,j] * 255)
+        #         c = self.palette(c)
+        #         # c = (c,c,c)
+        #         self.layout.set(i, j, c)
 
         self._step += amt

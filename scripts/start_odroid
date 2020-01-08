@@ -1,4 +1,4 @@
 #!/bin/bash
 
-pipenv run -- bp wonderdomicile.yml
-#pipenv run -- bp --loglevel frame wonderdomicile.yml
+#pipenv run -- bp wonderdomicile.odroid.yml + animations.yml
+pipenv run -- bp --loglevel frame --verbose wonderdomicile.odroid.yml + animations.yml

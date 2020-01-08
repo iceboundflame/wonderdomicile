@@ -1,12 +1,8 @@
-import math
-
 import numpy as np
 from bibliopixel.animation.matrix import Matrix
-from bibliopixel.colors import COLORS, palette
-
 
 # based on shift5 from https://stackoverflow.com/a/42642326/133518
-from animations import np_palettes
+from wonderdomicile import np_palettes
 
 
 def shift_and_copy_2d(arr, num):

@@ -14,70 +14,8 @@ drivers:
     num: 1430
     device_id: 1
 
-# enables numpy
-numbers: float
-
-path: .
-
-controls:
-  - typename: wonderdomicile.control.audio.AudioAnalyzerControl
-
-animation:
-  typename: sequence
-#  length: 120
-  length: 60000
-#  random: true
-  run:
-    fps: 60
-    threaded: true
-  animations:
-    - typename: wonderdomicile.animation.audio_vis.ScrollingSpectrumVisualizer
-    - typename: animations.colorwave.Vertical
-      palette:
-        colors: rainbow
-      bloom: true
-      color_speed: 1
-      color_distance: 3
-    - typename: animations.hydropump.HydroPump
-      palette:
-        colors: rainbow
-      fade: 0.5
-      pump_speed: 4
-      pipe_rate: 1
-      gravity: 0.25
-    - typename: animations.sparkles.Sparkles
-      name: Sparkles
-      palette:
-        colors: rainbow
-    - typename: animations.fire.Fire
-      name: Fire
-      palette:
-        colors: rainbow
-    - typename: animations.chase.ChaseUp
-      name: ChaseUp
-      run:
-        fps: 20
-      spacing: 30
-      palette:
-        colors: rainbow
-#    - typename: animations.chase.Chase
-#      name: Chase
-#      run:
-#        fps: 20
-#      spacing: 30
-#      alternating: 2
-#      palette:
-#        colors: rainbow
-    - typename: BiblioPixelAnimations.matrix.MatrixRain.MatrixRain
-      tail: 1
-      growthRate: 1
-      palette:
-        colors:
-          - royal blue 1
-
 layout:
   typename: matrix
-  # DO NOT CHANGE THESE
   width: 16
   height: 143
   brightness: 255

@@ -3,5 +3,4 @@ cd "$(dirname "$0")"/..
 
 set -x
 
-#pipenv run -- bp wonderdomicile.rpi.yml
-pipenv run -- bp --loglevel frame --verbose wonderdomicile.rpi.yml
+pipenv run -- bp --loglevel frame --verbose wonderdomicile.rpi.yml + animations.yml

@@ -8,6 +8,10 @@ name = "pypi"
 [packages]
 bibliopixel = {editable = true,path = "./BiblioPixel"}
 numpy = ">1"
+cython = "*"
+pyaudio = "*"
+pyfftw = "*"
+madmom = "*"
 
 [requires]
 python_version = "3.7"

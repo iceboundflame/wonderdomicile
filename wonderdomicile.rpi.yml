@@ -8,56 +8,59 @@ drivers:
     c_order: RGB
     ledtype: WS2812B
     gamma: WS2812
+
+  # David's setup only has 3 panels, the rest are virtual
   - typename: .dummy
     num: 1430
     device_id: 1
 
-# enables numpy. currently v slow
-#numbers: float64
+# enables numpy
 numbers: float
 
-aliases:
-  bpa: BiblioPixelAnimations.matrix
+path: .
 
-path: ./animations/
+controls:
+  - typename: wonderdomicile.control.audio.AudioAnalyzerControl
 
 animation:
   typename: sequence
-  length: 120 #600
+#  length: 120
+  length: 60000
 #  random: true
   run:
     fps: 60
     threaded: true
   animations:
-    - typename: colorwave.Vertical
+    - typename: wonderdomicile.animation.audio_vis.ScrollingSpectrumVisualizer
+    - typename: animations.colorwave.Vertical
       palette:
         colors: rainbow
       bloom: true
       color_speed: 1
       color_distance: 3
-    - typename: hydropump.HydroPump
+    - typename: animations.hydropump.HydroPump
       palette:
         colors: rainbow
       fade: 0.5
       pump_speed: 4
       pipe_rate: 1
       gravity: 0.25
-    - typename: sparkles.Sparkles
+    - typename: animations.sparkles.Sparkles
       name: Sparkles
       palette:
         colors: rainbow
-    - typename: fire.Fire
+    - typename: animations.fire.Fire
       name: Fire
       palette:
         colors: rainbow
-    - typename: chase.ChaseUp
+    - typename: animations.chase.ChaseUp
       name: ChaseUp
       run:
         fps: 20
       spacing: 30
       palette:
         colors: rainbow
-#    - typename: chase.Chase
+#    - typename: animations.chase.Chase
 #      name: Chase
 #      run:
 #        fps: 20
@@ -65,7 +68,7 @@ animation:
 #      alternating: 2
 #      palette:
 #        colors: rainbow
-    - typename: $bpa.MatrixRain.MatrixRain
+    - typename: BiblioPixelAnimations.matrix.MatrixRain.MatrixRain
       tail: 1
       growthRate: 1
       palette:

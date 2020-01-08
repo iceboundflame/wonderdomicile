@@ -14,7 +14,7 @@ ssh pi@columns.local "
     sudo killall -9 bp
 "
 
-rsync -avz --delete --exclude='.git/' .. pi@columns.local:~/workspace/wonderdomicile
+rsync -avz --delete --exclude=.git --exclude=.idea .. pi@columns.local:~/workspace/wonderdomicile
 
 ssh pi@columns.local "
     #while

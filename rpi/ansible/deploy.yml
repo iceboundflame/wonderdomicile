@@ -69,6 +69,7 @@
           - liblapack-dev
           - libfftw3-dev
           - portaudio19-dev
+          - libatlas-base-dev
           # for scipy-ndimage, Pillow
           - libjpeg-dev
           - zlib1g-dev
